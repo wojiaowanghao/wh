@@ -1,0 +1,272 @@
+create table t2(
+level tinyint
+);
+
+insert into t2 values(200);
+
+select * from t2;
+
+
+create table t3(
+level tinyint unsigned
+);
+
+//无符号整型 unsigned
+
+insert into t3 values(255);
+
+
+create table t4(
+pay double(5,2)
+);
+
+insert into t4 values(888.88);
+
+select * from t4;
+
+create table t5(
+pay double(5,2) unsigned
+);
+
+create table t1(
+name char
+);
+insert into t1 values("s");
+
+
+create table t6(
+name varchar(1)
+);
+
+insert into t6 values("s");
+
+drop table t1;
+
+delete from t1;
+
+show databases;
+
+show tables;
+
+select  database();
+
+use db1;
+
+desc t5;
+
+
+create table t6(
+name char(15),
+mail varchar(30)
+);
+
+insert into t6 values("bob","bob@163.com"),("xix","xix@163.com");
+
+
+create table t7(
+name char(15),
+age  tinyint unsigned,
+pay  float(7,2),
+sex  enum("boy","girl","no"),
+likes  set("eat","woman","game","money")
+);
+
+insert into t7 values("bob",17,5000,"boy","woman");
+
+insert into t7 values("lal",21,5000,"boy","woman,money");
+
+insert into t7 values("lal",21,5000,1,"woman,money");
+
+
+create table t8(
+name char(15),
+syear  year,
+birthday  date,
+up_class  time,
+party  datetime
+);
+
+insert into t8 values("dingding",1990,20180506,083000,20180618210000);
+
+
+
+
+create table dog(
+name char(6),
+age  tinyint unsigned,
+size enum("24","36"),
+likes set("sex","lal","money","en")
+);
+
+insert into dog values("lili",23,"36","sex,money");
+
+
+select now();                   //取当前系统的年月日时分秒
+select date( now() );	        //取当前系统的年月日
+select time( now() );
+select month( now() );
+select day( now() );
+select time( now() );
+select year( now() );
+select year(20170506);        //取当前时间的年
+
+
+insert into t8 values("la",year(19970506),date(now()),083000,now());
+
+create table t9(
+name char(5),
+meeting  datetime,     //不输入值的话为 null
+party  timestamp       //不输入值的话为 当前系统时间
+);
+
+insert into t9(name,meeting) values("luxi",now());
+
+insert into t9(name,party) values("dada",20170506225530);
+
+create  table t10(
+name char(5),
+level int(3) zerofill,
+money int(5) zerofill
+);
+
+insert into t10 values("jqk",23,88);
+
+insert into t10 values("bj",852,53545);
+
+insert into t10 values("ex",333333,344344);
+
+
+create table t11(
+name char(5)  not null ,
+level int(3) zerofill default 0,
+money int(5)  zerofill default 0
+);
+
+insert into t11(name)  values("dfh");
+
+
+alter table t10
+add email char(30) default "stu@taren.com",
+add  tel  char(11);
+
+alter table t10
+add sex enum("boy","girl","no")  default "no"
+after name;
+
+alter table t10
+add stu_id char(9) first;
+
+alter table t10 
+modify  name char(10);
+
+
+alter table t10
+modify tel char(11)  after name;
+
+
+alter table t10
+drop sex,drop email;
+
+alter table t10
+change name NAME  char(10) ;
+
+
+alter table t10
+rename   stuinfo;
+
+/////////////////
+create table t12(
+name char(5),
+class char(7),
+index (name),
+index (class)
+);
+
+show index  from  t12\G;
+
+drop index class on t12;
+
+create	 index class on t12(class);
+
+
+create table t17(
+stu_id  char(9) primary key,    //主键不能为 null， 不能重复。
+name  char(5)
+);
+
+insert into t17 values("180301","bob");
+
+create table t17(
+stu_id  char(9),
+name  char(5),
+primary key(stu_id)          //两种创建方法
+);
+
+
+alter table t17 
+drop primary key;
+
+alter table t17
+add primary key(stu_id);
+
+
+create table t18(
+cip char(15),
+serverport  smallint(2),
+status enum("yes","no"),
+primary key(cip,serverport)      //复合主键    两列之间不能同时重复
+);
+
+insert into t18 values("1.1.1.1",25,"yes");
+
+alter table t18
+drop primary key;       //删除复合主键   只能这样删除
+
+alter table t18
+add primary key(cip,serverport);        //在已有的表中添加复合主键，且表记录满足复合主键的要求
+
+
+create table t19(
+stu_id  int(2)  primary  key  auto_increment,    //自增长  必须是主键且为数值
+name char(10),
+age tinyint(2)
+);
+
+insert into t19(name,age) values("bab",23);
+
+///移除主键前,如果有自增属性,必须先去掉
+
+alter table t19
+add id int(2) primary key  auto_increment  first;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
