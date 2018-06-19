@@ -239,6 +239,135 @@ insert into t19(name,age) values("bab",23);
 alter table t19
 add id int(2) primary key  auto_increment  first;
 
+外键
+
+什么是外键?
+让当前表字段的值在另一个表中字段值的范围内选择
+  使用外键的条件
+表的存储引擎必须是 innodb
+字段类型要一致
+被参照字段必须要是索引类型的一种 (primary key)
+
+create table gzb(
+gz_id int(2), 
+name char(5),
+bumen char(20),
+pay float(7,2),
+foreign key(gz_id) references ygb(yg_id)  on update cascade  on delete cascade);  
+
+gzb(gz_id)表参照ygb(yg_id)  同步更新，同步删除
+
+
+insert into gzb values ("2","tom","tea",25500);
+
+update ygb set yg_id=8 where name="bob";
+
+
+delete from ygb where yg_id=2;
+
+alter table gzb add primary key(gz_id);
+
+当一个表被当作参考的时候是不能被删除的，要把作外键的表中的外键删掉
+
+alter table gzb drop foreign key gzb_ibfk_1 ;
+
+
+
+数据导入导出
+查看默认使用目录及目录是否存在   show variables like "secure_file_priv";
+
+修改默认使用目录 
+ vim /etc/my.cnf
+....
+ secure_file_priv=/dirdata
+
+chown  mysql  /dirdata    修改权限
+
+重启服务
+
+
+
+导入要有相应的空表
+
+create table user(
+name char(30),
+password  char(1),
+uid  smallint(2),
+gid  smallint(2),
+comment char(100),
+homedir char(150),
+shell  char(50),
+index(name)
+);
+
+若要在mysql中执行系统命令 （不需要加分号）   如： system  cp /etc/passwd  /var/lib/mysql-files/
+
+导入数据
+
+• 基本用法
+LOAD DATA INFILE “ 目录名 / 文件名”
+INTO TABLE 表名
+FIELDS TERMINATED BY “ 分隔符”
+LINES TERMINATED BY “\n”;
+• 注意事项
+– 字段分隔符要与文件内的一致
+– 指定导入文件的绝对路径
+– 导入数据的表字段类型要与文件字段匹配
+– 禁用 SElinux
+
+
+
+load data infile "/var/lib/mysql-files/passwd" into  table user fields terminated  by ":" lines terminated by "\n";
+
+添加id表子段
+
+alter table user 
+add id int(2) primary key auto_increment first;
+
+数据导出
+
+基本用法
+– SELECT 查询 .. ..
+INTO OUTFILE “ 目录名 / 文件名”
+FIELDS TERMINATED BY “ 分隔符”
+LINES TERMINATED BY “\n”;
+• 注意事项
+– 导出的内容由 SQL 查询语句决定
+– 禁用 SElinux
+
+目录名为 mysql默认的那个（若修改过则以修改后的为准）
+
+
+select * from user into outfile "/var/lib/mysql-files/user1.txt" ;
+
+select name,id,password from user where id <= 3 into outfile "/var/lib/mysql-files/user3.txt" ;
+导出 name  id  password 子段的前三行 
+
+select name,id,password from user where id >=3 into outfile "/var/lib/mysql-files/user4.txt" fields terminated by "###"  lines terminated by "***";
+
+
+管理表记录（增删改查）
+
+insert into  user（表名）  values(....),(...);    如果要写多条记录用逗号隔开。
+
+insert into  user(name,id)  values (...),();      给指定子段添加记录。
+
+delete from user;     删除表中所有内容
+
+delete  from  user  where name="bob"  加条件的删除
+
+update  user set password=A;   修改表记录  如果要修改多个子段，用逗号隔开  (批量修改所有password子段)
+
+update  user  set  password="A"  where id =40; 
+
+select  * from user ;   查找表中的所有内容。
+
+select  user,name  from user;  查找表中 user name  子段的内容
+
+select  * from user where  user="bob" and id=2;   查找表中id为2且name为"bob"子段。
+
+ 
+
 
 
 
