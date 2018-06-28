@@ -369,6 +369,1768 @@ select  * from user where  user="bob" and id=2;   查找表中id为2且name为"b
  
 
 
+select * from user where uid < 3;
+
+select * from user where uid < gid; 
+
+where 子段名  符号  指
+
+where 字段名  符号  字段名
+
+
+数值比较
+> >= < <= = !=
+
+匹配空   is null
+匹配非空  is  not  null
+
+select name  from user  where uid is null;
+
+insert into user(name)  values("yy");
+
+update user set uid=4008 where uid is null;
+
+
+select * from user where id = 3;
+
+update user set gid = null  where id = 3 ;
+
+逻辑比较
+
+逻辑与   and    逻辑或  or   逻辑非  !   not   提高优先级 ()
+
+select * from user where  name="root" and uid=0  and shell="/bin/bash";
+
+select * from user where name="root"  or uid=0 or shell="/sbin/nologin";
+
+select name,uid from user  where  name="root" and uid=1 or uid=3; 
+
+select name,uid from user  where  name="root" and (uid=1 or uid=3); 
+
+select name,uid from user  where  name="root" and (uid=0 or uid=3); 
+
+
+
+匹配范围内的值
+
+in （） 在...里    not in ()  不再这。。。里    between 10 and 20 在 10和20 之间   distinct  去重显示(重复的显示一次)
+
+select name  from user  where name in ("apache","mysql","adm","bin");
+
+select name  from user  where name  not in ("apache","mysql","adm","bin");
+
+select name,uid from user  where  uid between 10 and 20;
+
+
+select  distinct  shell from user ;
+
+select distinct shell  from user where uid <= 10; 
+
+
+模糊匹配
+
+通配符 _  匹配单个字符   % 匹配 0～N 个字符
+
+select  name from user where name like '___';
+
+查找名字是三个字符的
+
+select  name from user where name like '___' and uid >=10;    查找名字是三个字符的,且uid>=10
+
+select name,uid from user where name like '__%__';  匹配名字不少于4个字符的
+
+select  name from user where name like '%' ;   匹配名字多个字符的（但是查不到 null的, null 是没有数据，可以匹配到 空""）
+
+
+正则匹配   regexp  ^ $ . * []...
+
+select name,uid from user where uid regexp '^....$';  查看uid 是四个字符的
+
+select name,uid from user where name regexp '^[0-9]';  查看以数字开头的
+
+select name,uid from user where name regexp '[0-9]$';  查看以数字结尾的
+
+select name,uid from user where name  regexp '[0-9]';    查看那包含数字的
+
+运算操作
+– 字段必须是数值类型
+ +  -  *  /  % 
+
+alter table user add age tinyint(2) unsigned  default 18  after name;
+
+select name,age, 2018 - age syear from user  where name="root";
+
+update user set age=age+1;
+
+select name,uid,gid,(uid+gid)/2  pjz from user where uid >= 10 and uid <=20;
+
+
+聚集函数
+• MySQL 内置数据统计函数
+– avg( 字段名 ) : 求平均值
+– sum( 字段名 ) :求和
+– min( 字段名 ) : 统计最小值
+– max( 字段名 ) :统计最大值
+– count( 字段名 ) :统计个数
+
+可以加where 条件
+
+select avg(uid) from user ;
+
+select sum(uid) from user ;
+
+select min(uid) from user ;
+
+select max(uid) from user ;
+
+select count(uid) from user ;
+
+
+select count(*) from user ; 统计所有列的个数，以最大的为显示结果 
+
+select count(uid),count(gid) from user ;  分别显示每一列的
+
+
+
+操作查询结果
+
+
+查询结果排序
+• 基本用法
+SQL 查询
+ORDER BY 字段名
+[ asc | desc ]
+
+默认是升序   desc 是 降序
+
+select name,uid  from user  where uid>=10 and uid<=20  order by uid desc;   查询结果以uid降序显示
+
+查询结果分组
+• 基本用法
+– SQL 查询
+group by 字段名
+
+select  shell from user  group by shell;    （效果和查重复相似）
+
+查询结果过滤
+• 基本用法
+– SQL 查询 having 条件表达式;
+– SQL 查询 where 条件 having 条件表达式;
+– SQL 查询 group by 字段名
+
+HAVING 条件表达式;
+
+select name from user  having name="root";
+
+select shell from user  where uid>=10 and uid<=1000 group by shell  having shell="sync";
+
+select id,name from user where name like '%' having name is null;    查看名字字段中有没有空的
+
+
+
+
+限制查询结果显示行数
+
+
+• 基本用法
+– SQL 查询 limit n; 显示查询结果前 n 条记录
+– SQL 查询 limit n,m ;显示指定范围内的查询记录
+
+– SQL 查询 where 条件查询 limit n ;显示查询结果前 n 条记录
+– SQL 查询 where 条件查询 limit n , n ;显示指定范围内的查询记录
+
+
+select name from user limit 3;      显示前三行
+
+select  name  from user limit 3,3;    从第四行开始显示，显示三行
+
+
+
+MySQL 存储引擎
+
+
+列出可用的存储引擎类型
+– show engines; 或 show engines\g
+
+
+修改默认存储引擎
+
+[root@dbsvr1 ~]# vim /etc/my.cnf
+[mysqld]
+.. ..
+default-storage-engine=MyISAM
+
+重启服务
+
+
+create database db2 ;
+
+create table t1(
+id int);
+
+show create  table t1;
+
+
+create table t2(
+name char
+)engine=innodb;
+
+show create  table t2;
+
+
+alter table t2 engine=innodb;     修改表的存储引擎
+
+常用的存储引擎是 Myisam  innodb
+
+myisam特点
+一个表使用3个文件存储
+t1.frm  t1.MYD  t1.MYI
+表结构   数据    索引
+不支持外键  和事务 和事务回滚
+支持表级锁 （给一张表加锁）
+
+
+innodb特点：
+一个表使用2个文件存储
+t2.frm   t2.ibd
+表结构   数据+索引
+支持外键  和事务 和事务回滚
+支持行级锁 （只给被访问的行加锁）
+
+
+事务： 一次sql操作从开始到结束的过程。
+
+事务回滚： 在事务执行过程中任意一步操作失败，恢复所有的操作。
+
+如：
+
+ATM 
+插卡  输入密码 登录成功
+
+转账   对方卡号 8888888888
+       转账金额 5W
+       转账中.....  
+		成功 -5w
+                     +5w
+
+                失败 -5w -- > +5w
+                      事务回滚
+退卡
+
+
+事务能否回滚取决于事务日志文件，如果sql命令没有被提交，就可以回滚，如果已经提交就不能回滚
+
+事务日志文件
+ibdata1 未提交的sql
+        LSN  日志序列号
+
+ib_logfile0 已经提交的SQL
+ib_logfile1
+
+
+mysql> set autocommit = off;    关闭自动提交
+
+
+
+锁 ： 解决并发访问冲突问题
+
+锁粒度：行锁  表锁  页级锁（1M相当于1M）
+
+锁类型：
+select  读锁（共享锁）      大家还可以查询
+pc1  select  * from t1; 
+pc2  select  * from t1;
+ 
+insert  update  delete
+
+写锁（排它锁 或互斥锁）     有一个人在操作，其他人就无法操作
+pc1  
+update   t1 set name="bob" where 
+
+name="root";
+
+pc2 
+update   t1 set name="bob2" where 
+
+name="root";
+
+执行查询操作多的表 适合使用myisam存储引擎，这样可以节省系统资源  (表级锁)
+
+执行写操作多的表 适合使用innodb存储引擎，这样加大并发访问量。（行级锁）
+
+MySQL 锁机制
+
+查看当前的锁状态
+– 检查 Table_lock 开头的变量, % 作通配符
+
+show status like 'Table_lock%';
+
+123
+
+事务特性 (ACID)
+• Atomic :原子性
+– 事务的整个操作是一个整体,不可分割,要么全部成功,要么全部失败。
+• Consistency : 一致性
+– 事务操作的前后,表中的记录没有变化。
+• Isolation :隔离性
+– 事务操作是相互隔离不受影响的。
+• Durability :持久性
+– 数据一旦提交,不可改变,永久改变表数据
+
+
+事务特性 (ACID) (续 1 )
+• 示例
+
+mysql> show variables like "autocommit"; // 查看提交状态
+mysql> set autocommit=off; // 关闭自动提交
+mysql> rollback ; // 数据回滚
+mysql> commit; // 提交数据
+
+
+
+复制表 (备份)    复制的时候表中的key 和索引是不能复制过来的，需要自己后期需要加
+
+create database db4;
+
+create table db4.t1  select * from db1.user;     把整张表备份一下
+
+create table db4.t2  select id,name  from db1.user;   把id，name，字段备份
+
+create tbale db4.t3 select * from db1.user  where  1=2;    查找不存在的内容 ，表中的记录是没有的，表字段是有的
+
+
+
+  嵌套查询
+
+内层查询的结果 作为外层查询的条件
+select name,uid from db1.user where uid > (select avg(uid) from db1.user);  uid > 平均值的输出  同一个表中的查找	
+
+select name from db4.t1 where name in (select user from mysql.user where host="localhost");   不同表中的查找   
+
+多表查询（交叉查询）  笛卡尔集    
+
+create table db4.t5 select name,uid,shell from db1.user limit 3;
+
+create table  db4.t6 select name,uid,gid,homedir from db1.user limit 5;
+
+
+select * from t5,t6;     查询t5,t6表中的所有记录
+
+select * from t5,t6 where t5.uid = t6.uid;     查询t5.uid = t6.uid 的记录
+
+select t5.shell,t6.* from t5,t6 where t5.uid = t6.uid;     查询t5.uid = t6.uid 的记录 只显示 t5.shell,t6.*的字段
+
+左连接，当条件成立是以左表为主显示查询结果
+
+– select 字段名列表  from  表1  left join 表2 on 条件表达式;
+
+右连接，当条件成立是以右表为主显示查询结果
+
+– select 字段名列表  from  表1  right join 表2 on 条件表达式;
+
+create table t7 select name,uid,shell from db1.user limit 5;
+
+create table t8 select name,uid,shell from db1.user limit 8;
+
+select * from t7 left join t8 on t7.uid=t8.uid;      左连接  以左表t7显示为主
+
+select * from t7 right join t8 on t7.uid=t8.uid;    左连接  以左表t8显示为主   
+
+
+
+select * from t8 left join t7 on t7.uid=t8.uid;   
+
+
+
+
+
+
+
+恢复 MySQL 管理员密码
+
+[root@localhost ~]# vim /etc/my.cnf
+[mysqld]
+......
+skip-grant-tables
+
+::wq
+
+[root@localhost ~]# systemctl restart mysqld
+
+[root@localhost ~]# mysql
+
+[mysql> update mysql.user set authentication_string=password("888888") where user="root" and host="localhost";
+
+mysql> flush privileges;
+
+mysql> quit
+
+更改管理员密码  （只有系统管理员可以执行）
+
+mysqladmin   -hlocalhost -uroot -p password 'abc123'
+Enter password:  老密码
+
+
+
+
+
+
+授权
+
+with grant option 支持给其他用户授权
+
+grant all on *.*  to amdin@"192.168.4.51" identified by '123456' with grant option;
+
+mysql -h192.168.4.50 -uamdin -p123456
+
+mysql> select  @@hostname;   显示连接mysql服务器的主机名
+
+mysql> select  user; 显示哪个用户登陆的
+
+mysql> show grants；  显示权限 
+
+grant all on webdb.* to webuser@"192.168.4.%" identified by '123456';
+
+grant select,update(name,uid) on db1.user to yaya@"%" identified by '123456';  授权yaya用户可以从任何ip登陆（可以ping的通）对db1.user有查询，和更新 name,uid 字段的权限。
+
+
+
+mysql 中的user表         //存放用户，和登陆主机
+
+查看当前mysql服务器中的用户，登陆主机，和用户的权限
+
+select user,host from mysql.user;
+show grants for yaya;
+
+select user from mysql.user;
+select * from mysql.user where user="admin"\G;
+
+
+mysql 中的db表      //存放对库的操作权限
+
+
+select * from mysql.db where db="webdb"\G;
+
+
+
+mysql 中的mysql.tables_priv表     //存放对表的操作权限
+
+ select host,user,db,table_name from mysql.tables_priv;
+
+select * from mysql.tables_priv  where user="yaya"\G;
+
+
+ 
+修改用户权限
+
+select * from mysql.tables_priv  where user="yaya"\G;   查看yaya对哪个表有什么权限
+
+update  mysql.tables_priv  set  Table_priv="select,insert" where user="yaya";    给yaya添加insert 权限
+
+mysql> flush privileges;
+
+
+撤销用户权限
+撤销已有的权限，但是不影响用户登陆。
+
+基本用法
+
+ revoke 权限列表 on 库名 . 表名
+ from 用户名 @' 客户端地址 ';
+
+revoke GRANT OPTION on *.* from 'amdin'@'192.168.4.51';        撤销授权权限
+
+revoke delete  on *.* from 'amdin'@'192.168.4.51';            撤销delete 权限
+
+
+删除用户
+
+drop user 'amdin'@'192.168.4.51';
+
+
+重设用户密码
+
+set password=password('123456');
+
+管理员重设其他用户的密码
+
+set password  for 'amdin'@'192.168.4.51'=password('112255');
+
+
+数据库的备份与恢复
+
+
+
+day05数据备份与恢复
+一数据备份相关概念
+1.1 数据备份的目的？  数据被误删除 或 设备损害导致数据丢失 ，是备份文件恢复数据。
+1.2数据备份方式？
+物理备份： 指定备份库和表对应的文件
+51
+cp   -r   /var/lib/mysql   /opt/mysql.bak      //拷贝整个数据库
+cp  -r  /var/lib/mysql/bbsdb   /opt/bbsdb.bak     //拷贝单个库
+
+rm -rf  /var/lib/mysql/bbsdb
+cp   -r  /opt/bbsdb.bak    /var/lib/mysql/bbsdb             //恢复单个库     
+chown  -R  mysql:mysql   /var/lib/mysql/bbsdb              //由于是系统管理员进行的拷贝，所有要把文件的所属关系，设置成mysql，否则没有权限
+systemctl  restart  mysqld
+
+
+51  scp  /opt/mysql.bak   192.168.4.51:/root/              //也可以把这台服务器上的mysql拷贝的文件，拿到另一台服务器上进行恢复，
+
+52  rm  -rf /var/lib/mysql
+      cp   -r  /root/mysql.bak   /var/lib/mysql
+      chown  -R  mysql:mysql   /var/lib/mysql
+      systemctl  restart  mysqld
+
+逻辑备份： 在执行备份命令时，根据备份的库表及数据生成对应的sql命令，把sql存储到指定的文件里。
+
+
+1.3数据备份策略？
+完全备份  备份所有数据（一张表的所有数据  一个库的所有数据  一台数据库的所有数据）
+
+备份新产生数据（差异备份 和 增量备份  都备份新产生的数据 ）
+差异备份 备份自完全备份后，所有新产生的数据。
+增量备份 备份自上次备份后，所有新产生的数据。
+
+1.4工作中如何对数据做备份？
+1.4.1  选择备份策略：
+                             完全备份+差异备份
+                             完全备份+增量备份
+1.4.2  数据备份时间    数据服务器访问量少的时候执行备份
+1.4.3  数据备份频率    根据数据产生量，决定备份频率
+1.4.4 备份文件的命名   库名-日期.sql
+1.4.5 备份文件的存储设置  准备独立的存储设备存储备份文件
+1.4.6 如何执行备份  使用周期性计划任务执行本机脚本
+
+
+完全备份+差异备份
+                 06:00      t1	文件名        数据
+1   完全                    10  1.sql	         10
+2   差异                    3		2.sql	          3
+3                           5   3.sql           8
+4		                        2 	4.sql	         10
+5		                        7	  5.sql	         17
+6                       		4	  6.sql	         21
+7 差异                      1	  7.sql	         22    	
+
+完全备份+增量备份
+                06:00      t1	文件名        数据
+1   完全                    10               1.sql	 10
+2   增量                    3		2.sql	 3
+3                              5	3.sql           5
+4		2	4.sql	 2
+5		7	5.sql	7
+6		4	6.sql	4
+7  增量                         1	7.sql	1  
++++++++++++++++++++++++++++++
+二完全备份与完全恢复
+2.1 完全备份数据
+利用mysqldump进行数据库的导入导出（进行数据的备份和恢复）
+
+]# mkdir  -p /mydatabak
+]# mysqldump -uroot -p654321  studb > /mydatabak/studb.sql       //把studb库导出到studb.sql       
+]# mysqldump -uroot -p654321  db3 user3 > /mydatabak/db3-user3.sql
+
+]#cat /mydatabak/studb.sql
+]#cat  /mydatabak/db3-user3.sql
+
+2.3 完全恢复数据
+]# mysql -uroot -p654321  studb  < /mydatabak/studb.sql            数据的导入
+]# mysql -uroot -p654321  db3   < /mydatabak/db3-user3.sql
+
+使用source 命令恢复数据
+mysql> create database  bbsdb;
+mysql> use bbsdb;
+mysql> source  /mydatabak/studb.sql
+
+
+每周一晚上18:00备份studb库的所有数据到本机的/dbbak目录下，备份文件名称要求如下  日期_库名.sql。
+
+]#vim /root/bakstudb.sh
+#!/bin/bash
+day=`date +%F`
+if [ ! -e /dbbak  ];then
+     mkdir /dbbak
+fi
+mysqldump  -uroot  -p654321  studb  >  /dbbak/${day}_studb.sql
+:wq
+]# chmod   +x   /root/bakstudb.sh
+]#/root/bakstudb.sh
+]# ls /dbbak/*.sql
+
+]#crontab  -e
+00  18   *  *  1        /root/bakstudb.sh  &> /dev/null
+:wq
+
+
+3.1  启动mysql数据库服务的binlog日志文件 实现实时增量备份
+3.1.1 binlog日志介绍：是mysql数据库服务日志文件的一种，默认没有启用。记录除查询之外的sql命令。
+查询命令例如： select   show   desc  
+写命令例如： insert   update   delete   create  drop 
+
+3.1.2 启用binlog日志
+]#vim /etc/my.cnf
+[mysqld]
+server_id=51
+log-bin
+binlog-format="mixed"
+:wq
+]# systemctl  restart  mysqld
+
+]# ls /var/lib/mysql/主机名-bin.000001
+]# cat  /var/lib/mysql/主机名-bin.index
+
+3.1.3 查看binlog日志文件内容
+]#mysqlbinlog   /var/lib/mysql/mysql51-bin.000001
+
+****可以自定义binlog日志文件存储的位置和文件名称
+]#mkdir  /mylog
+]#chown   mysql   /mylog
+]#setenforce  0 
+
+]#vim /etc/my.cnf
+[mysqld]
+server_id=51
+#log-bin
+log-bin=/mylog/plj
+binlog-format="mixed"
+:wq
+
+]# systemctl  restart  mysqld
+]#ls /mylog/plj.*
+plj.000001   plj.index
+
+3.1.4 手动生成新的日志文件方法
+*默认日志文件大于500M时自动创建新日志文件
+
+]# systemctl  restart mysqld
+
+mysql> flush logs;
+
+]# mysql -uroot -p密码 -e "flush logs"
+
+]# mysqldump  -uroot -p密码  --flush-logs  库名  > 目录/xx.sql
+
+使用一个新的日志文件 记录 新创建的webdb库的初始操作。
+mysql> flush  logs;
+mysql> create database webdb; create table webdb.a(id int);
+mysql> insert into webdb.a values(100);
+mysql> insert into webdb.a values(101);
+mysql> flush logs;
+删除webdb库，使用 binlog日志文件恢复webdb库的数据。
+mysql>  drop   database  webdb;
+
+3.1.7 使用binlog日志恢复数据
+]#mysqlbinlog  /mylog/plj.000008   |  mysql  -uroot  -p654321 
+
+3.1.5 删除已有的binlog日志文件
+
+mysql> purge  master  logs  to  "binlog文件名; 
+             删除指定日志文件之前的日志文件
+mysql> purge  master  logs  to  "plj.000005";
+
+mysql>  reset master ;  删除所有的日志文件重新生成第一个日志文件
+mysql> show master status;  显示当前正在使用的binlog日志信息
+
+]#mysqlbinlog   日志文件名；
+
+3.1.6 binlog日志记录sql命令方式
+记录方式有2种：  偏移量   、记录sql命令执行的时间
+
+指定偏移量范围选项 
+--start-position=偏移量的值  
+--stop-position=偏移量的值
+
+指定时间范围选项
+--start-datetime="yyyy-mm-dd  hh:mm:ss"  
+--stop-position="yyyy-mm-dd  hh:mm:ss" 
+ ++++++++++++++++++++++++
+读取日志文件指定范围内的sql命令恢复数据。
+]# mysqlbinlog  --start-position=293  --stop-position=1450   plj.000001   |  mysql  -uroot  -
+
+p654321
+++++++++++++++++++++++++++++
+
+]#mysqldump  -uroot  -p654321  --flush-logs  db3.user3  >  /root/user3.sql
+
+mysql> insert into db3.user3 values("a","b","c");
+mysql> insert into db3.user3 values("aa","b","c");
+mysql> insert into db3.user3 values("ab","b","c");
+mysql> insert into db3.user3 values("ac","b","c");
+
+mysql> delete from  db3.users;
+mysql> select  * from  db3.user3;
+
+]#mysql  -uroot  -p654321  db3  <  /root/user3.sql
+mysql> select  * from  db3.user3;
+
+]#mysqlbinlog    --start-position=偏移量的值  
+--stop-position=偏移量的值  日志文件名 |  mysql  -uroot  -p654321 
+
+mysql> select  * from  db3.user3;
++++++++++++++++++++++++++++++++++
+3.2  安装第3方软件提供备份命令，对数据做增量备份
+软件介绍 Percona 开源软件  在线热备不锁表  适用于生成环境。
+
+安装软件
+]# rpm -ivh  libev-4.15-1.el6.rf.x86_64.rpm
+]# yum -y  install   perl-DBD-mysql   perl-Digest-MD5
+]# rpm  -ivh  percona-xtrabackup-24-2.4.7-1.el7.x86_64.rpm
+]# rpm  -ql  percona-xtrabackup-24
+
+提供2个备份命令
+/usr/bin/innobackupex命令集成了命令xtrabackup，所以可以支持MYISAM存储引擎
+
+/usr/bin/xtrabackup命令仅支持InnoDB和XtraDB存储引擎的表
+
+innobackupex备份命令的使用格式？
+]#innobackupex  <选项>
+]# man  innobackupex
+
+常用选项？
+--user  用户名
+--password  密码
+--databases="库名"     
+                     "库名1  库名2"
+                     "库名.表名"
+--no-timestamp  不使用时间戳做备份文件的子目录名
+
++++++++++++++++innobackupex完全备份 与 完全恢复
+]# innobackupex  --user  root   --password   654321  \
+--databases="mysql   performance_schema  sys   gamedb"   /allbak  --no-timestamp
+
+++++++++++++++完全恢复   
+--copy-back
+
+]# rm   -rf  /var/lib/mysql
+]# mkdir  /var/lib/mysql
+]# innobackupex  --user root --password 654321  --copy-back  /allbak 
+]# chown  -R  mysql:mysql  /var/lib/mysql
+]#  systemctl  restart  mysqld
+]#mysql   -uroot  -p654321
+mysql> show  databases;
+mysql> select  * from  gmaedb.t1;
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+事务日志文件
+LSN    日志序列号
+
+
+增量备份的工作过程？
+每一个备份目录下，都有记录当前目录备份信息的配置文件
+]# cat   备份目录名/xtrabackup_checkpoints   (记录备份类型 和lsn范围)
+
+
++++++++++innobackupex增量备份与恢复
+--incremental  目录名                   #增量备份
+--incremental-basedir=目录名    #增量备份时，指定上一次备份文件存储的目录名
+
+先要有一次完全备份  存放目录 /fullbak
+]# innobackupex  --user   root   --password  654321   \
+--databases="gamedb  mysql  performance_schema  sys"  \
+/fullbak  --no-timestamp
+
+插入新记录，执行增量备份    存放目录 /new1bak
+mysql> insert  into  gamedb.t1  values(8080),(8080);
+]# innobackupex  --user   root   --password  654321   \
+--databases="gamedb  mysql  performance_schema  sys"  \
+--incremental    /new1dir    --incremental-basedir=/fullbak     --no-timestamp
+
+
+插入新记录，执行增量备份    存放目录 /new2bak
+mysql> insert  into  gamedb.t1  values(8099),(8099);
+]# innobackupex  --user   root   --password  654321   \
+--databases="gamedb  mysql  performance_schema  sys"  \
+--incremental   /new2dir   --incremental-basedir=/new1dir   --no-timestamp
+
+
+++++++++++++++增量恢复
+--apply-log   准备恢复数据
+--redo-only  合并日志
+--incremental-dir=目录名   #增量恢复数据时，指定备份目录名称
+--copy-back 恢复数据
+
+清空数据库目录
+]# rm   -rf   /var/lib/mysql
+]# mkdir   /var/lib/mysql
+
+准备恢复数据
+]# innobackupex  --user   root   --password  654321   \
+--databases="gamedb  mysql  performance_schema  sys"  \
+--apply-log    --redo-only    /fullbak
+
+合并日志
+]# innobackupex  --user   root   --password  654321   \
+--databases="gamedb  mysql  performance_schema  sys"  \
+--apply-log    --redo-only    /fullbak   --incremental-dir=/new1dir
+
+]# innobackupex  --user   root   --password  654321   \
+--databases="gamedb  mysql  performance_schema  sys"  \
+--apply-log    --redo-only    /fullbak   --incremental-dir=/new2dir
+
+
+拷贝备份文件到数据库目录
+]# innobackupex  --user   root   --password  654321   \
+--databases="gamedb  mysql  performance_schema  sys"  \
+--copy-back   /fullbak
+]# ls  /var/lib/mysql   -l
+
+修改文件的所有者/组mysql
+]# chown  -R  mysql:mysql  /var/lib/mysql
+
+
+重启数据库服务
+]# systemctl   restart  mysqld
+]# mysql   -uroot   -p654321
+
+
++++++++++++++++++++++使用完全备份文件恢复单个表
+--export  导出表信息
+mysql> alter  table  库.表   discard  tablespace;   删除表空间
+mysql> alter  table  库.表  import  tablespace;  导入表空间
+
+1完全备份
+]#  innobackupex   --user   root    --password   654321   \
+--databases="studb"    /allbakstudb    --no-timestamp
+
+2查看备份目录文件列表
+]# ls   /allbakstudb
+]# ls   /allbakstudb/studb
+
+3误删除a表:    mysql>  drop   table   studb.a;
+
+4 使用完全备份文件恢复单个表
+4.1  按照备份时的表结构创建删除的表
+create   table  studb.a(name char(10));
+
+4.2  删除创建表的表空间文件
+mysql> alter  table studb.a  discard  tablespace; 
+
+4.3  使用备份文件导出表信息
+]#innobackupex --user root --password 654321   \
+--databases="studb"  --apply-log   --export   /allbakstudb
+
+4.4  把导出的表信息文件，拷贝到对应的数据库目录下，并修改所有者和组为mysql
+]# cp /allbakstudb/studb/a.{cfg,exp,ibd}   /var/lib/mysql/studb/
+]# chown mysql:mysql /var/lib/mysql/studb/a.*
+
+4.5  导入表空间
+mysql>  alter  table  studb.a  import  tablespace; 
+
+[root@mysql51 ~]# rm  -rf /var/lib/mysql/studb/a.cfg 
+[root@mysql51 ~]# rm  -rf /var/lib/mysql/studb/a.exp
+
+4.6  查看记录
+mysql> select   * from  studb.a;
+
+
+mysql主从同步
+
+角色分为2种：
+数据库服务 做主master库：被客户端存储数据访问的库
+数据库服务 做从slave库：同步主库的数据到本机
+
+MySQL主从同步作用：实现数据的自动备份。
+
+
+主
+
+1 启用binlog日志
+2 用户授权
+3 查看正在使用的binlog日志信息
+
+
+vim /etc/my.cnf
+...
+server_id=53
+log-bin=master53
+binlog-format="mixed"               //启用binlog日志
+
+
+mysql>grant replication slave  on *.*  to repluser@"%" identified by '123456';    //授权一个用户来进行同步，也只有同步的权限
+
+mysql>show master status ;     //查看bin-log日志的偏移量
+
+
+mysql>grant all on bbsdb.* to jim@"%" identified by '123456';     //授权一个用户从客户端进行操作来验证
+\
+
+从
+
+1 验证主库授权用户
+2 指定server_id
+3 指定主库信息
+4 查看从库状态信息
+
+
+ vim /etc/my.cnf
+...
+server_id=51    (一般写ip最后一个数)
+
+
+mysql -uroot -p123456
+
+添加主数据库的信息 
+mysql> change master to 
+master_host="192.168.4.52",       //主数据库的地址
+master_user="repluser",           //授权同步的那个用户
+master_password="123456",         //密码
+master_log_file="master52.000001",     //主数据库的binlog
+master_log_pos=451                //偏移量  
+
+
+
+
+mysql> start slave;               //启动从  的线程   
+
+mysql> show slave status ;  查看从库信息（属于谁的从库）	
+
+            Slave_IO_Running: Yes
+            Slave_SQL_Running: Yes       （这两个线程是   yes  说明从数据库配置成功）
+
+mysql> show  processlist;   查看线程
+
+工作原理
+备库将主库的二进制日志复制到其本地的中继日志中。首先，备库会启动一个工作线程，称为I/O线程，I/O线程跟主库建立一个普通的客户端连接，然后在主库上启动一个特殊的二进制转存（Binglog Dump）线程，这个转存线程会读取主库上的二进制日志中事件，并发送给从库的I/O线程；如果主库没有更新信息将进入休眠。
+
+[root@host52 ~]# cd /var/lib/mysql
+master.info
+relay-log.info
+host52-relay-bin.xxxxxx
+host52-relay-bin.index
+
+
+IO线程：
+Last_IO_Error:从主数据库的binlog日志中提取sql命令，放到从服务器的中继日志中
+
+SQL线程
+Last_SQL_Error:执行中继日志中的sql命令
+
+
+http://github.com/yaya9998/notedir
+
+如果添加主数据库的信息的时候有地方搞错了可以这样
+
+stop  slave ;     停止这个线程（不停掉不让修改的）
+
+change  master  to  master_log_pos=452;
+
+start  slave; 
+
+
+主从配置常用参数
+
+主库  /etc/my.cnf
+[mysqld]
+#binlog_do_db=db2,bbsdb  只允许同步的库
+binlog_ignore_db=db9   只不允许同步的库
+
+
+从库/etc/my.cnf
+[mysqld]
+log_salve_updates 级联复制 ***        //应用在主从从     c是b的从，b是a的从，   修改了a后，b和c也会改变。
+#replicate_do_db=db3,db5 只同步的库
+replicate_ignore_db=db1,db7,db9 只不同步的库
+
+
+三、主从同步模式
+3.1 主从同步结构模式
+一主一从 把52主机配置为51的从库 
+
+一主多从 把50主机配置为51的从库 
+从配置步骤：192.168.4.50
+1 验证主库授权用户
+2 指定server_id
+3 指定主库信息
+4 查看从库状态信息
+
+主从从  把主机53配置为52从库。15:10
+
+配置主库 192.168.4.52
+启用binlog日志
+用户授权
+
+配置从库：192.168.4.53
+1 验证主库授权用户
+2 指定server_id
+3 指定主库信息
+4 查看从库状态信息
+  
+***
+从库的SQL线程执行本机中继日志文件里的SQL命令，不会记
+
+录在本机的binlog日志文件里。
+
+
+复制模式
+
+异步复制（Asynchronous replication）
+MySQL默认的复制即是异步的，主库在执行完客户端提交的事务后会立即将结果返给给客户端，并不关心从库是否已经接收并处理，这样就会有一个问题，主如果crash掉了，此时主上已经提交的事务可能并没有传到从上，如果此时，强行将从提升为主，可能导致新主上的数据不完整。
+ 
+全同步复制（Fully synchronous replication）
+指当主库执行完一个事务，所有的从库都执行了该事务才返回给客户端。因为需要等待所有从库执行完该事务才能返回，所以全同步复制的性能必然会收到严重的影响。
+ 
+半同步复制（Semisynchronous replication）
+介于异步复制和全同步复制之间，主库在执行完客户端提交的事务后不是立刻返回给客户端，而是等待至少一个从库接收到并写到relay log中才返回给客户端。相对于异步复制，半同步复制提高了数据的安全性，同时它也造成了一定程度的延迟，这个延迟最少是一个TCP/IP往返的时间。所以，半同步复制最好在低延时的网络中使用。
+
+
+查看是否支持动态加载模块
+show variables like  "have_dynamic_loading";
+
+
+查看以安装的插件
+ SELECT  PLUGIN_NAME, PLUGIN_STATUS 
+FROM INFORMATION_SCHEMA.PLUGINS  
+WHERE PLUGIN_NAME LIKE '%semi%';
+
+主库安装插件：
+mysql>
+INSTALL PLUGIN rpl_semi_sync_master SONAME  
+
+'semisync_master.so';
+
+从库安装插件：
+mysql>
+INSTALL PLUGIN rpl_semi_sync_slave SONAME 
+
+'semisync_slave.so';
+
+
+
+启用半同步复制
+查看本机的半同步复制状态
+show  variables  like  "rpl_semi_sync_%_enabled";
+主库：
+mysql>
+ SET GLOBAL rpl_semi_sync_master_enabled = 1;
+
+从库
+mysql>
+ SET GLOBAL rpl_semi_sync_slave_enabled = 1;
+
+
+
+
+
+mysql调优
+
+MySQL工作原理：
+1.1 MySQL服务的工作过程
+
+管理工具：MySQL服务软件安装后提供的命令
+连接池：检查本机是否有资源处理当前的连接
+
+请求                 （空闲的线程 内存）
+
+sql接口：把sql命令传递给mysql服务的进程处理。
+
+分析器：检查执行的sql命令是否有语法错误
+
+优化器：优化执行的sql命令，使其能以最节省系统资源的方式执行。
+
+查询缓存：查询缓存的存储空间是从系统的物理内存里划分出来的，用来存储查询过的查询结果。
+
+存储引擎：软件自带的功能程序，是用来处理表的处理器。
+
+文件系统 ： 数据库服务器存储数据的磁盘
+
+
+MySQL优化：
+数据库服务器处理客户的连接请求慢，可能是由哪些原因导致。
+网络带宽
+服务器硬件的配置：查看服务器硬件资源的使用情况 CPU  内存   存储  I/O
+
+提供数据服务软件版本低。
+
+
+
+
+
+mysql> show variables;       查看变量名
+
+mysql> show variables like "%conn%";      //查看变量名像  conn
+
+mysql> set global max_connections=500;     //设置最大连接数为500
+
+mysql> show global status like "%conne%";  //查看当前已使用的连接数	
+
+
+
+
+查看变量的值 
+mysql> show  variables;
+mysql> show  variables like "%关键字%";
+mysql> show variables like "%time%";
+
+帮助文档：
+MySQL帮助手册
+mysql配置文件详解
+
+修改变量的值：
+命令行修改
+set  [global] 变量名=值；
+
+
+永久修改
+vim /etc/my.cnf
+[mysqld]
+变量名=值
+
+常用的参数有哪些？
+并发连接数
+set global max_connections = 500;
+show variables like "max_connections";
+
+show  global status  like 
+
+"%Max_used_connections%";
+
+有过的最大连接数量/并发连接数=0.85
+Max_used_connections/max_connections=0.8
+
+5
+
+100/x=0.85 *  100%  = 85%
+
+可以重复使用的线程的数量
+thread_cache_size  = 90 
+
+
+为所有线程缓存打开表的数量
+table_open_cache  2000 
+
+mysqld  --->  t1.* ----> 内存 ---硬盘
+
+key_buffer_size 索引缓存大小
+index  primary key  foreign key
+
+字段值排序 存储在 a.MYI /var/lib/mysql/a.ibd
+select name from  user.a where name="bob";
+
+
+查看数据库服务查询缓存的设置
+show variables like "%cache%";
+
+show variables like "query_cache%";
+
+
+query_cache_type = 0 | 1 | 2
+
+select  sql_in_cache  字段名列表from 表
+
+；
+
+query_cache_wlock_invalidate   off 
+
+当对myisam存储引擎的表，查询的时候，若此时有客户端对表执行写操作，MySQL服务不会从缓存里查找数据返回给客户端，而是等写操作完成后，重新从表里查找数据返回给客户端。
+atab    myisam
+pc1  
+select name from a where name="bob";
+
+name="bob"  ----> 查询缓存
+
+pc2 
+select name from a where name="bob";
+
+
+pc3
+update  a  set  name="tom"  where 
+
+name="bob";
+
+查询缓存统计信息
+Qcache_hits       10      
+Qcache_inserts    100      
+
+
+程序员编写的访问数据库服务数据的sql命令复杂 导致处理速度。
+
+在数据库服务器上启用慢查询日志，记录超过指定时间显示查询结果的sql命令。
+
+日志的种类：
+binlog日志 错误日志 查询日志 慢查询日志 
+              *
+
+
+
+查询日志：记录所有的sql命令
+启用日志  general-log
+日志名    主机名.log
+ 
+慢查询日志： 只记录超过超时时间(10s)显示查询结果的sql命令
+vim /etc/my.cnf
+[mysqld]
+slow-query-log
+log_queries_not_using_indexes=1
+:wq
+
+]# mysqldumpslow host10-slow.log
+
+
+]# mysqldumpslow host10-slow.log  >  /root/sql.txt
+vim  /root/sql.txt
+
+数据存储架构问题：
+数据传输时有瓶颈
+
+
+
+
+MySQL数据读写分离
+MySQL多实例
+mysql性能优化
+
+MySQL数据读写分离：
+把客户端访问数据库服务时的查询请求和写数
+
+据的请求给不同的数据库服务器处理。
+
+人肉分离
+
+就是让程序员查看数据的试试在一台mysql服务器上，写入数据的时候在另外一台数据库上
+
+
+
+
+读写分离
+
+部署MySQL数据读写分离架构
+1 配置MySQL主从同步
+要求：把20配置为10的从库。
+
+配置主库10
+启binlog日志
+用户授权
+查看日志信息
+
+配置从库20
+验证授权
+指定server_id
+指定主库信息
+查看从库状态
+
+客户端验证主从同步配置:
+在主库添加访问数据的连接用户并设置密码
+create database db12;
+grant  all on  db12.*  to  yaya@"%" 
+
+identified by "123qqq...A";
+
+客户端连接主库 执行sql命令
+mysql -h192.168.4.10 -uyaya -p123qqq...A
+mysql> 建库 建表 插入记录
+
+在从库本机也能够看到同样的数据
+mysql  -uroot  -p123qqq...A
+mysql> select  * from db12.a;
+
+
+mysql中间件：mysql-proxy mycat  maxscale
+
+在主机100上部署代理服务，实现数据读写分离。
+装包
+修改配置文件,并根据配置文件的设置在数据
+
+库服务器上添加对应的授权用户。
+启动服务。
+查看服务信息。
+
+]# rpm -ivh maxscale-2.1.2-1.rhel.7.x86_64.rpm
+
+]# cp /etc/maxscale.cnf 
+
+/etc/maxscale.cnf.bak
+
+
+
+vim  /etc/maxscale.cnf
+...
+
+[server1] // 定义数据库服务器主机名
+type=server
+address=192.168.4.10 //master 主机 ip 地址
+port=3306
+protocol=MySQLBackend
+[server2] // 定义数据库服务器
+type=server
+address=192.168.4.20 //slave 主机 ip 地址
+port=3306
+protocol=MySQLBackend
+
+[MySQL Monitor] // 定义要监视的数据库服务器
+type=monitor
+module=mysqlmon
+servers=server1, server2 // 定义的主、从数据库服务器主机名
+user=scalemon // 用户名
+passwd=111111 // 密码
+monitor_interval=10000
+[Read-Write Service] // 定义实现读写分离的数据库服务器
+type=service
+router=readwritesplit
+servers=server1, server2 // 定义的主、从数据库服务器主机名
+user=maxscale // 用户名
+passwd=111111 // 密码
+max_slave_connections=100%
+
+
+在主、从数据库服务器创建授权用户
+
+scalemon用户
+grant replication slave, replication client on *.* to scalemon@'%'  identified by "123qqq...A";      //检查主从关系
+ 
+maxscale用户
+grant select on mysql.* to maxscale@'%'identified by "123qqq...A";                   //查看登陆的用户是否存在
+
+select user from mysql.user where user in ("scalemon","maxscale");
+
+mysql> grant all on *.* to student@'%' identified by “111111”; // 创建访问数据用户
+
+#mysql -h192.168.4.10 -uscalemon -
+
+p123qqq...A
+
+#mysql -h192.168.4.20 -uscalemon -
+
+p123qqq...A
+
+
+ maxscale -f /etc/maxscale.cnf     //启动服务
+ ps -C maxscale
+ netstat -utnlp | grep maxscale
+
+
+测试配置
+1在主机100上连接管理服务查看监控信息
+[root@host100 ~]# maxadmin -uadmin -pmariadb -P4099           //用户名密码默认是这样
+MaxScale> list servers
+
+2在客户端连接100主机，访问数据时能否实现
+
+数据读写分离
+
+]#ping  -c 2  192.168.4.100
+]#which  mysql
+
+]#mysql -h192.168.4.100 -P4006 -uyaya -p123qqq...A
+
+进行查询和写的操作。
+select    insert  
+
+
+
+MySQL多实例  192.168.4.50
+
+装包
+
+定义命令路径
+vim /etc/profile
+export  PATH=/usr/local/mysql/bin:$PATH
+:wq
+
+
+创建配置文件
+vim /etc/my.cnf
+[mysqld_multi]
+mysqld = /usr/local/mysql/bin/mysqld_safe
+mysqladmin = /usr/local/mysql/bin/mysqladmin
+user = root
+
+[mysqld1]
+port=3307
+datadir=/dir3307
+socket=/dir3307/mysqld3307.sock
+pid-file=/dir3307/mysqld.pid
+log-error=/dir3307/mysqld.err
+
+[mysqld2]
+port=3308
+datadir=/dir3308
+socket=/dir3308/mysqld3308.sock
+pid-file=/dir3308/mysqld.pid
+log-error=/dir3308/mysqld.err
+:wq
+
+
+
+创建数据库目录
+mkdir /dir3307
+mkdir /dir3308
+
+初始授权库
+]#mysqld  --user=mysql  --basedir=/usr/local/mysql --datadir=/dir3307 --initialize 
+
+
+aLJJ#Dy76Wt3 登录初始密码
+
+]# mysqld  --user=mysql  --basedir=/usr/local/mysql --datadir=/dir3307 --initialize 
+
+2wtmOpI0Zp&Q  登录初始密码
+
+启动实例服务
+  617  mysqld_multi start 1
+  618  netstat  -utnlp  | grep :3307
+
+  619* mysqld_multi start 2
+  620  netstat  -utnlp  | grep :3308
+
+  621  ps -C mysqld
+  624  netstat  -utnlp  | grep mysqld
+  
+  622  ps aux | grep mysqld
+
+连接本机的数据库服务
+]#mysql -uroot -p'初始密码'  -S  socket文件
+mysql> alter user root@"localhost" identified by "123456";
+mysql> quit
+
+]#mysql -uroot -p123456  -S  socket文件
+mysql> show databases;
+mysql> 
+
+停止指定的实例服务
+]# mysqld_multi --user=root --password=密码  stop 实例编号 
+
+# mysqld_multi --user=root --password=123456 stop 2
+[root@host50 ~]# netstat  -utnlp  | grep ：3308
+
+]# mysql -uroot -p123456 -S /dir3308/mysqld3308.sock 
+
+
+change master to master_host="192.168.4.52",
+master_user="repluser",
+master_password="123456",
+ master_log_file="master52.000010",
+master_log_pos=154;
+
+
+masterha_manager --conf=/etc/mha_manager/app1.cnf --remove_dead_master_conf  --ignore_last_failover
+
+ change master to 
+ master_host="192.168.4.51",
+master_user="repluser",
+ master_password="123456",
+master_log_file="master51.000009",
+ master_log_pos=154;
+
+
+
+
+
+
+
+
+
+
+
+部署MySQL高可用集群 （MHA软件+主从同步）
+
+
+
+
+集群 ： 使用多服务器提供相同的服务51-55
+
+高可用集群 主备模式  当主角色的主机宕机后，备用主机自动接替主角色的主机，提供服务给客户端。
+
+cilent  mysql  -h192.168.4.100  -uwebuser  -p123qqq...A
+
+vip地址 192.168.4.100
+
+
+                vip
+  主       备用主  备用主           
+mysql51  mysql52  mysql53    mysql54   mysql55
+          slave    slave     slave     slave
+
+
+准备MHA运行环境
+一主多从
+安装依赖的软件包
+ssh root用户无密码登录
+
+二、配置MHA
+
+
+2.1 配置数据节点 192.168.4.51-55
+2.1.1 一主多从 
+
+2.1.2 安装依赖的perl软件包 
+
+2.1.3 安装软件mha-node
+yum -y  install perl-DBD-mysql
+rpm -ivh mha4mysql-node-0.56-0.el6.noarch.rpm 
+
+2.1.4 彼此之间可以 ssh root用户无密码登录 
+
+ssh-keygen
+ssh-copy-id
+
+2.1.5 授权监控用户 
+grant all  on *.* to 'root'@'%' identified  by  "123456";
+				     
+
+2.1.6 所有数据库服务器启用不自动删除本机的中继日志文件
+mysql> set global relay_log_purge=off;
+
+
+2.2 配置管理主机 192.168.4.56：
+2.2.1 安装依赖的perl软件包
+
+2.2.2装包
+]# yum -y  install perl-DBD-mysql 
+]# rpm -ivh  mha4mysql-node-0.56-0.el6.noarch.rpm
+
+]# yum -y  install perl-ExtUtils-*   perl-CPAN-*
+
+
+]#tar -zxf mha4mysql-manager-0.56.tar.gz 
+
+]#cd mha4mysql-manager-0.56
+]# perl  Makefile.pl
+]# make
+]# make  install
+
+
+2.2.3 指定命令所在的路径
+]# cd mha4mysql-manager-0.56
+]# mkdir /root/bin
+]# cp bin/* /root/bin/
+]# s /root/bin
+
+2.2.4修改配置文件
+
+]# mkdir /etc/mha_manager/
+]# cd mha4mysql-manager-0.56/samples/conf/
+]# cp  app1.cnf   /etc/mha_manager/
+
+]# vim  /etc/mha_manager/app1.cnf
+
+[server default]
+manager_log=/etc/mha_manager/manager.log        //日志
+manager_workdir=/etc/mha_manager                //工作目录
+master_ip_failover_script=/etc/mha_manager/master_ip_failover     //调用的脚本
+password=123456
+repl_password=123456
+repl_user=repluser
+ssh_port=22
+ssh_user=root
+user=root
+
+[server1]
+candidate_master=1
+hostname=192.168.4.51
+
+[server3]
+candidate_master=1
+hostname=192.168.4.53
+
+[server4]
+hostname=192.168.4.54
+no_master=1
+
+[server5]
+hostname=192.168.4.55
+no_master=1
+
+
+
+]# cd mha4mysql-manager-0.56/samples/scripts
+]# cp master_ip_failover  /etc/mha_manager/
+
+]# rm  -rf /etc/mha_manager/master_ip_failover 
+
+]# cd  mha-soft-student
+]# cp master_ip_failover /etc/mha_manager/
+
+]# vim /etc/mha_manager/master_ip_failover 
+ 35 my $vip = '192.168.4.100/24';  # Virtual IP 
+ 36 my $key = "1";
+ 37 my $ssh_start_vip = "/sbin/ifconfig eth0:$key $vip";
+ 38 my $ssh_stop_vip = "/sbin/ifconfig eth0:$key down";
+
+
+测试配置文件
+ ]# vim /etc/mha_manager/app1.cnf
+#master_ip_failover_script=/etc/mha_manager/master_ip_failover
+:wq
+
+]# masterha_check_ssh  --conf=/etc/mha_manager/app1.cnf
+
+.... All SSH connection tests passed successfully.
+
+
+]# masterha_check_repl --conf=/etc/mha_manager/app1.cnf
+.....
+.....
+MySQL Replication Health is OK.
+
+
+3 启动服务
+
+3.1 把vip 地址手动绑定在当前的主库51上
+]# ifconfig  eth0:1 192.168.4.100/24
+]# ifconfig  eth0:1 
+
+3.2 启动服务
+]# vim /etc/mha_manager/app1.cnf
+master_ip_failover_script=/etc/mha_manager/master_ip_failover
+:wq
+
+
+]#masterha_manager --conf=/etc/mha_manager/app1.cnf --remove_dead_master_conf  --
+
+ignore_last_failover
+
+]#masterha_check_status --conf=/etc/mha_manager/app1.cnf
+
+4测试高可用集群配置
+
+在数据库服务器上添加访问数据时连接用户 webuser  123qqq...A
+mysql> create database db13;
+Query OK, 1 row affected (0.04 sec)
+
+mysql> grant all on  db13.* to webuser@"%" 
+    -> identified by "123qqq...A";
+
+4.1 客户端连接VIP地址访问数据库
+]# mysql -h192.168.4.100 -uwebuser -p123qqq...A
+
+
+4.2 测试高用集群
+把主机51上的数据库服务停止 
+
+
+
+
+
+把宕机的数据库服务器51 在添加到当前集群里
+
+
+mysql> change master to master_host="192.168.4.52",
+    -> master_user="repluser",
+    -> master_password="123qqq...A",
+    -> master_log_file="master52.000001",
+    -> master_log_pos=154;
+Query OK, 0 rows affected, 2 warnings (0.30 sec)
+
+mysql> start slave;
+
+
+56：
+]# vim /etc/mha_manager/app1.cnf
+[server1]
+candidate_master=1
+hostname=192.168.4.51
+
+:wq
+
+]# masterha_check_repl --conf=/etc/mha_manager/app1.cnf
+MySQL Replication Health is OK.
+
+
+]#masterha_manager --conf=/etc/mha_manager/app1.cnf --remove_dead_master_conf  --
+
+ignore_last_failover
+
+
+[root@mgm56 ~]# masterha_check_status --conf=/etc/mha_manager/app1.cnf
+app1 (pid:8710) is running(0:PING_OK), master:192.168.4.52
+[root@mgm56 ~]#
+
+
+
+
+
+MySQL 视图
+
+什么是视图 (View)
+– 虚拟表
+– 内容与真实的表相似,包含一系列带有名称的列和行
+数据。
+– 视图并不在数据库中以存储的数据的形式存在。
+– 行和列的数据来自定义视图时查询所引用的基表,并
+且在具体引用视图时动态生成。
+– 更新视图的数据,就是更新基表的数据
+– 更新基表数据,视图的数据也会跟着改变
+
+
+建库，建表
+
+create database db9;
+
+
+create table user(
+name char(20),
+password char(1),
+uid int(2),
+gid int(2),
+comment char(150),
+homedir char(150),
+shell char(30)
+);
+
+
+load data infile "/var/lib/mysql-files/passwd" into table user  fields terminated by ":"  lines terminated  by "\n";
+
+导入文件到表中
+
+
+alter table user
+add id int(9)  primary key auto_increment first;     //添加id字段， 主键 ，自动增长。
+
+use db9;
+
+create view t1 as select name,shell from user where uid <=20;      //创建视图表   字段名和基表中的字段名  默认一样
+
+show table status where comment="view"\G;      //查看哪些是视图表
+
+show create view t1 ;                          //查看视图表是从哪个基表创建出来的
+
+
+create view t2(user,stu_uid,stu_gid)  as select name,uid,gid from user limit 3 ;      (自定义视图表中的字段名，字段名的个数要和查出来的字段名的个数一样多) 
+
+对视图表进行修改的话，基表也会被修改 ，  反之亦然。。
+
+create view t3 as select id,name,shell,password  from user;
+
+
+update t3 set name="tom" where id=1;
+
+select name from t3 where id=1;
+
+select name from user where id=1;
+
+
+
+drop view t3;         //删除视图
+
+insert into t3 values(77,"yaya","/etc/ss","F");
+
+select * from t3 where id=77;
+
+select * from user where id=77;
+
+
+字段别名必须要写(多表查询)
+
+
+create table user2  select name,uid,shell from user limit 5;
+
+
+create table info  select name,uid,shell from user limit 10;
+
+create view v2 as select a.name as aname,b.name as bname, a.uid as auid  b.uid as buid from user2 a left join  info  b on a.uid=b.uid;
+                                                                                                                      //把user2起名为a     info起别名b  
+                          
+
+create view v2 
+as 
+select user2.name as uname, info.name as iname , user2.uid as uuid ,info.uid as iuid   
+from  user2  left join  info  on user2.uid=info.uid;
+
+//user2.name 别名 uname, info.name 起名 iname, user2.uid 起名 uuid ,info.uid 起名 iuid 
+
+
 
 
 
