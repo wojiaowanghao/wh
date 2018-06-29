@@ -1,3 +1,20 @@
+
+1 连接数据库服务器 （命令连接   图形工具）
+]#mysql  -hlocalhost  -uroot  -p密码
+
+]#grep  password  /var/log/mysqld.log                  //初始密码存放的地方
+]#mysql -hlocalhost -uroot -p'k2T_SH0Jx%MB'
+
+mysql> set global validate_password_policy=0; 
+mysql> set global validate_password_length=6;
+mysql> alter user root@"localhost" identified by "123456";    //用初始密码登上后进行改密码
+
+mysql> quit
+]#mysql -hlocalhost -uroot -p123456
+mysql> show databases;
+mysql> create database db1;
+
+
 create table t2(
 level tinyint
 );
