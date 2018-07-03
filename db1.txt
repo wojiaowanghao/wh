@@ -2149,6 +2149,784 @@ from  user2  left join  info  on user2.uid=info.uid;
 
 
 
+create  table user2 select name,uid,shell from user ;
+
+select * from user2;
+
+
+create view v1 as select * from user2 where uid<=30;
+
+create view v2 as select * from v1 where uid >=20  with  check option;    //  默认是 CASCADED 同时要满足基表的限制。
+
+show create view v2 
+
+update v2 set uid=29 where name="mysql";      //要满足视图表和 基表
+
+select * from v2 where name ="mysql";
+
+select * from v1 where name ="mysql";
+
+select * from  user2   where name ="mysql";
+
+
+create  view v3 as select * from  v1 where uid>=20 with local check option；   //只需满足视图表的
+
+select * from v3 ;
+
+show create  view v3\G ;
+
+update v3 set uid =35 where name="mysql";     //满足自己,可以查进去,如果不满足基表，可以插入进去，但是数据没有了
+
+
+
+delimiter //
+create procedure say1()
+begin
+select * from db9.user;
+select * from  mysql.user where user="root";
+end
+//
+delimiter ;
+
+call say1;                    //调用
+
+desc mysql.proc;               //存放存储过程
+
+
+select db,name,type from mysql.proc where name="say1";
+
+
+drop procedure say1;        删除存储方式
+
+
+
+delimiter //
+create procedure p1()
+begin
+select count(name) from user where shell="/bin/bash";
+end
+//
+delimiter ;
+
+call p1;
+
+
+会话变量 会话变量和全局变量叫系统变量 使用 set 命令定义;
+全局变量的修改会影响到整个服务器,但是对会
+话变量的修改,只会影响到当前的会话。
+全局变量
+用户变量 在客户端连接到数据库服务的整个过程中都是有
+效的。当当前连接断开后所有用户变量失效。
+定义 set
+@ 变量名 = 值;
+输出 select @ 变量名;
+局部变量 存储过程中的 begin/end 。其有效范围仅限于该
+语句块中,语句块执行完毕后,变量失效。
+declare 专门用来定义局部变量。
+注意:局部变量 和 参数变量 调用时 变量名前不需要加 @
+
+
+
+delimiter //
+create procedure p2()
+begin
+declare x int default 77;      //定义局部变量，   仅在存储过程中有效
+declare y char(10);
+set y="yaya";                   //给局部变量赋值           （先定义在赋值）
+select x;
+select y;
+end
+//
+delimiter ;
+
+call p2;
+
+show global variables;      //查看全局变量
+
+show session variables;      //查看会话变量
+
+set session sort_buffer_size=40000;     设置会话变量
+
+show session variables like “sort_buffer_size”; // 查看会话变量
+
+set @y = 3; // 用户自定义变量,直接赋值
+
+select @y;
+
+select max(uid) into @y from user; // 使用 sql 命令查询结果赋值(把user表中uid最大的赋值给y)
+
+
+in 输入参数
+
+delimiter //
+create procedure p3(in username char(20))
+begin
+select name from user where name=username;
+end
+//
+delimiter ;
+
+call p3("yaya");      //有参数的存储过程，必须要传参。
+
+out输出参数
+
+delimiter //
+create procedure p4(out num int(2))
+begin
+select num;
+set num=7;
+select num;
+select count(name) into num from db9.user where shell="/bin/bash";
+select num;
+end
+//
+delimiter ;
+
+set @x=7;
+call p4();                      //把存储过程的输出的值赋给@x
+
+
+inout  参数类型
+
+delimiter //
+create procedure p5(inout num int(2))
+begin
+select num;
+set num=7;
+select num;
+select count(name) into num from db9.user where shell="/bin/bash";
+select num;
+end
+//
+delimiter ;
+
+set @x=4;
+call p5(@x);                    //既能接受又能输出，
+
+
+if
+
+delimiter //
+create procedure p6(in num int(2))
+begin
+if num <= 10 then
+	select * from db9.user where id <= num;
+end if;
+
+end
+//
+delimiter ;
+
+ call p6(5) ;
+
+
+if...else..
+
+delimiter //
+create procedure p7(in num int(2))
+begin
+if num is null then
+	select * from db9.user where id = 2;
+else
+	select * from db9.user where id <= num;
+end if;
+
+end
+//
+delimiter ;
+
+
+call p7(@num);      //空
+
+set @num=3;
+
+call p7(@num);     
+
+
+
+while 
+
+delimiter //
+create procedure p8()
+begin
+	declare i int(2);
+	set i=1;
+	while i<=5 do
+	select i;
+	set i=i+1;
+	end while;
+end
+//
+delimiter ;
+
+
+while  显示偶数行
+
+delimiter //
+create procedure p9()
+begin
+	declare i int(2);
+	declare j int(2);
+	select count(id) into i from user;	
+	set j=1;
+	
+	while j <= i do
+	if j % 2 = 0 then	
+	select * from user where id=j;
+	end if ;
+	set j=j+1;
+	end while;
+end
+//
+delimiter ;
+
+
+死循环
+
+delimiter //
+create procedure p10()
+begin
+	declare i int(2);
+	set i=1;
+	loop
+	select i;
+	set i=i+1;
+	end loop;
+end
+//
+delimiter ;
+
+
+
+
+delimiter //
+create procedure p11()
+begin
+	declare i int(2);
+	set i=1;
+	repeat
+	select i;
+	set i=i+1;
+	until i=6           //满足条件跳出循环，不满足条件执行循环。
+	end repeat;
+end
+//
+delimiter ;
+
+
+
+控制语句
+• 循环结构控制语句,控制循环结构的执行。
+– leave 标签名 //跳出循环
+– iterate标签名 /放弃本次循环，执行下一次循环
+
+
+mysql> create procedure say()
+-> begin
+-> declare i int;
+-> set i=1;
+-> loab1:loop //定义标签名为loab1
+-> select i;
+-> set i=i+1;
+-> if i=3 then #i值是3时结束本次循环
+-> iterate loab1;
+-> end if;
+-> if i=7 then #i值是7 时 结束循环
+-> leave loab1;
+-> end if;
+-> end loop;
+-> end
+
+
+
+
+
+ create table employee(
+ id int primary key,
+ name varchar(100),
+ age int(2),
+sharding_id int not null
+ );
+
+
+insert into employee(id,name,age,sharding_id) values(1,"bob",21,10000),(2,"jim",22,10010);
+
+
+
+ tar -xf redis-4.0.8.tar.gz 
+cd redis-4.0.8/
+
+
+make
+ make install 
+ ls 
+cd utils/
+ls
+  ./install_server.sh 
+
+ss -anptu | grep 6379
+
+
+NOSQL
+
+NoSQL  (Redis  MongoDB)
+
+– 意思是 " 不仅仅是 SQL“
+– 泛指非关系型数据库
+– 不需要预先定义数据存储结构
+– 表的每条记录都可以有不同的类型和结构
+
+
+
+配置步骤：
+1 装包
+2 做初始化配置
+
+3启动服务 (初始化配置完成后默认启动服务)
+]# /etc/init.d/redis_6379 status | start | stop
+]# netstat -utnlp  | grep :6379
+]# ps -C redis-server
+
+4 访问redis服务器存储数据
+[root@host50 utils]# redis-cli 
+127.0.0.1:6379> ping
+PONG
+127.0.0.1:6379> set name bob       //设置字段
+OK
+127.0.0.1:6379> get name           //查看字段
+"bob"
+127.0.0.1:6379> quit
+[root@host50 utils]# ls /var/lib/redis/6379/         //过段时间就会把nosql内存中的数据存到硬盘上（存数据库目录上）,假设中途服务器有宕机情况，内存中的数据也会强制写到硬盘上的（像memcache这种nosql是不会往硬盘上存的，如果宕机数据就没有了）
+dump.rdb
+
+
+常用操作指令
+– Set keyname keyvalue // 存储
+– get keyname // 获取
+– Select 数据库编号 0-15 // 切换库
+– Keys * // 打印所有变量
+– Keys a? // 打印指定变量
+– Exits keyname // 测试是否存在
+// 查看生存时间
+– ttl keyname
+– type keyname // 查看类型
+
+– move keyname dbname // 移动变量
+– expire keyname 10 // 设置有效时间
+// 删除变量
+– del keyname
+– flushall // 删除所有变量
+– save // 保存变量     执行这个就是说直接把内存中的数据写到硬盘上
+– shutdown // 关闭服务      //redis-cli  上关闭服务
+
+
+常用配置选项    （修改配置文件中的字段   /etc/redis/6379.conf）
+
+– port 6379 // 端口
+– bind 127.0.0.1 //IP 地址
+– tcp-backlog 511 //tcp 连接总数
+– timeout 0 // 连接超时时间
+– tcp-keepalive 300 // 长连接时间
+– daemonize yes // 守护进程方式运行
+– databases 16 // 数据库个数
+– logfile /var/log/redis_6379.log //pid 文件
+– maxclients 10000 // 并发连接数量
+– dir /var/lib/redis/6379 // 数据库目录
+
+内存管理
+• 内存清除策略
+– volatile-lru 最近最少使用 (针对设置了过期时间的 key )
+– allkeys-lru 删除最少使用的 key
+– volatile-random 在设置了过期的 key 里随机移除
+– allkeys-random 随机移除 key
+– volatile-ttl (minor TTL) 移除最近过期的 key
+– noeviction 不删除 写满时报错
+
+选项默认设置
+
+– maxmemory <bytes> // 最大内存
+– maxmemory-policy noeviction // 定义使用的策略
+– maxmemory-samples 5 // 选取模板数据的个数
+(针对 lru 和 ttl 策略)
+
+
+
+设置连接密码
+
+
+vim /etc/redis/6379.conf 
+...
+501 requirepass 123456        //添加密码字段
+
+
+redis-cli  -h 192.168.4.50 -p 6350 -a 123456   //用密码连接到redis服务器
+
+/etc/init.d/redis_6379  start     //启动
+
+/etc/init.d/redis_6379  status    //状态
+
+/etc/init.d/redis_6379  stop       //停止
+
+ss -anptu | grep :6379
+
+redis-cli  -h 192.168.4.50 -p 6350 -a 123456  shutdown    //停止服务
+
+
+ vim /etc/init.d/redis_6379        //控制服务的状态的脚本
+  
+...
+$CLIEXEC -h 192.168.4.50 -p $REDISPORT -a 123456 shutdown      // 增加密码字段
+
+分析故障信息
+– 设置 redis 主从后,连接主服务器需要密码
+– 而 redis 启动脚本中未设置密码
+• 分析故障原因
+– redis 启动脚本通过执行 redis-cli -p 6379 shutdown
+关闭 redis ,因此没有密码是无法关闭服务的
+– 修改脚本 redis-cli -p 6379 -a 密码 shutdown
+
+
+部署 LNMP+Redis
+
+
+
+yum -y install gcc gcc-c++ pcre-devel zlib-devel
+]# tar -zxf nginx-1.12.2.tar.gz	
+]# cd nginx-1.12.2
+]# ./configure --prefix=/usr/local/nginx
+]# make
+]# make install
+[root@bogon ~ ]# yum -y install php-common
+[root@bogon ~ ]# rpm -ivh php-fpm-5.4.16-42.el7.x86_64.rpm
+
+
+
+修改 nginx 服务主配置文件 (打开9000端口的服务，用来解释php的脚本)
+
+vim /usr/local/nginx/conf/nginx.conf
+...
+  
+启动nginx   php-fpm  服务
+
+测试文件  （编写测试php的文件，测试lnmp是否好使）
+
+[root@bogon lnmp]# vim /usr/local/nginx/html/test.php
+<?php
+echo "hello world!!!";
+?>
+:wq
+
+
+配置 PHP 支持 Redis
+
+装包并启动服务
+
+# tar -xzf redis-4.0.8.tar.gz
+# cd redis-4.0.8
+#make
+#make install
+#./utls/install_server.sh // 初始化redis服务（工作目录，日志文件。。。初始化完成后，服务就是开启的）
+# /etc/init.d/redis_6379 start
+
+
+安装 php 扩展  （可以让php连接redis数据库）
+
+#yum -y install autoconf
+#yum -y install automake
+#rpm -ivh php-devel-5.4.16-42.el7.x86_64.rpm
+# tar -zxf php-redis-2.2.4.tar.gz
+# cd phpredis-2.2.4/
+[root@bogon phpredis-2.2.4]# /usr/bin/phpize
+Configuring for:
+PHP Api Version:
+20100412
+Zend Module Api No:
+20100525
+Zend Extension Api No: 220100525
+# ./configure --with-php-config=/usr/bin/php-config
+[root@bogon phpredis-2.2.4]# make
+[root@bogon phpredis-2.2.4]# make install
+[root@bogon ~]# vim /etc/php.ini
+extension_dir = "/usr/lib64/php/modules/"     //指定连接redis的程序所在位置
+extension = "redis.so"
+
+测试配置
+• 查看是否支持模块
+[root@bogon ~]# php -m | grep -i redis
+redis
+
+
+
+redis (nosql)集群
+
+
+准备6台redis服务器，具体要求如下：
+ip地址                 端口              etho                         日志文件名
+192.168.4.51     6051            都可以接收连接请求   redis51.log
+192.168.4.52     6052            都可以接收连接请求   redis52.log
+192.168.4.53     6053            都可以接收连接请求   redis53.log
+192.168.4.54     6054            都可以接收连接请求   redis54.log
+192.168.4.55     6055            都可以接收连接请求   redis55.log
+192.168.4.56     6056            都可以接收连接请求   redis56.log
+
+环境准备
+1  在6台redis服务器上运行服务，按照如下要求修改配置文件后，重启redis服务。
+
+]#vim   /etc/redis/6379.conf
+bind   192.168.4.56    #只指定物理接口ip地址
+port    6056                 #不允许相同
+daemonize yes
+cluster-enabled  yes
+pidfile /var/run/redis_56.pid    #不允许相同(可不设置)
+cluster-config-file   nodes-6056.conf   #不允许相同
+cluster-node-timeout 5000   #集群节点之间通信超时时间单位秒
+:wq
+
+
+ /etc/init.d/redis_6379 stop
+
+ /etc/init.d/redis_6379 start
+
+ss -anptu | grep 6056 
+
+tcp    LISTEN     0      128    192.168.4.51:6351                  *:*                   users:(("redis-server",pid=20595,fd=6))
+tcp    LISTEN     0      128    192.168.4.51:16351                 *:*                   users:(("redis-server",pid=20595,fd=8))
+                                                          集群进行连接的端口
+
+
+装包： 在执行创建集群命令的主机安装ruby软件包（192.168.4.51）
+
+安装解释ruby代码的软件包
+[root@host51 ~]# yum  -y  install   ruby   rubygems     
+[root@host51 ~]# rpm  -q rubygems  ruby
+rubygems-2.0.14.1-30.el7.noarch
+ruby-2.0.0.648-30.el7.x86_64
+[root@host51 ~]#
+
+[root@host51 redis-cluster]# rpm  -ivh  --nodeps ruby-devel-2.0.0.648-30.el7.x86_64.rpm
+
+安装ruby连接redis 接口程序 gem
+[root@host51 redis-cluster]# which  gem
+/usr/bin/gem
+[root@host51 redis-cluster]# gem  install  redis-3.2.1.gem 
+Successfully installed redis-3.2.1
+Parsing documentation for redis-3.2.1
+Installing ri documentation for redis-3.2.1
+1 gem installed
+
+生成创建集群的脚本redis-trib.rb
+
+ls redis-4.0.8/src/redis-trib.rb 
+
+[root@host51 src]# echo $PATH
+/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin
+
+[root@host51 src]# cd
+[root@host51 ~]# cp redis-4.0.8/src/redis-trib.rb   /usr/local/bin/
+
+创建集群：
+[root@host51 ~]# redis-trib.rb  create   --replicas  1  \  
+192.168.4.51:6051  \
+192.168.4.52:6052   \
+192.168.4.53:6053   \
+192.168.4.54:6054   \
+192.168.4.55:6055   \ 
+192.168.4.56:6056
+
+--replicas 1 表示 自动为每一个 master 节点分配一个 slave 节点
+
+注意：搭建redis集群，至少是6台redis服务器，并且每一个redis数据库服务器下是没有任何内容的。
+
+example
+
+以下报错是有一个数据库的内容不是空的
+[ERR] Node 192.168.4.54:6054 is not empty. Either the node already knows other nodes (check with 
+
+CLUSTER NODES) or contains some key in database 0.
+
+[root@db54 ~]# redis-cli  -h  192.168.4.54  -p  6054
+192.168.4.54:6054> flushall
+OK
+192.168.4.54:6054> keys *
+(empty list or set)
+192.168.4.54:6054> flushall
+OK
+192.168.4.54:6054> save
+OK
+192.168.4.54:6054> quit
+[root@db54 ~]#
+
+
+redis 集群的工作原理
+
+槽位个数是16384
+范围0-16383
+
+每一组主从服务器会有一个槽位的范围，当进行数据存储的时候，会对存储的字段进行计算，看计算出来的值是在哪个范围中的，就会存储到哪个里边，提取亦同。
+
+
+
+
+[root@host51 ~]# redis-trib.rb  create   --replicas  1  192.168.4.51:6051  192.168.4.52:6052 
+
+192.168.4.53:6053 192.168.4.54:6054 192.168.4.55:6055 192.168.4.56:6056   #创建集群
+ --replicas  1    表示给master 配置1个slave
+
+
+
+
+
+
+以下皆为创建集群的返回信息
+
+>>> Creating cluster
+>>> Performing hash slots allocation on 6 nodes...
+Using 3 masters:
+192.168.4.51:6051
+192.168.4.52:6052
+192.168.4.53:6053
+Adding replica 192.168.4.55:6055 to 192.168.4.51:6051
+Adding replica 192.168.4.56:6056 to 192.168.4.52:6052
+Adding replica 192.168.4.54:6054 to 192.168.4.53:6053
+M: 0ec903c572270a90f3b140fba31aac15aaf5336b 192.168.4.51:6051
+   slots:0-5460 (5461 slots) master
+M: 5278df7384edc9774b1a36b0b9d60a813a7424a9 192.168.4.52:6052
+   slots:5461-10922 (5462 slots) master
+M: 6cdb4c64c48c0ee2ca35bf139660f31ca92821dc 192.168.4.53:6053
+   slots:10923-16383 (5461 slots) master
+S: 388c33e7128fc961b381ad3b3c27c3c217912666 192.168.4.54:6054
+   replicates 6cdb4c64c48c0ee2ca35bf139660f31ca92821dc
+S: 651f7d99965316c1b8a27a2e9b034a5b14c2be55 192.168.4.55:6055
+   replicates 0ec903c572270a90f3b140fba31aac15aaf5336b
+S: a3af3096ee214c92a178eadf6e9299584899e62f 192.168.4.56:6056
+   replicates 5278df7384edc9774b1a36b0b9d60a813a7424a9
+Can I set the above configuration? (type 'yes' to accept): yes
+>>> Nodes configuration updated
+>>> Assign a different config epoch to each node
+>>> Sending CLUSTER MEET messages to join the cluster
+Waiting for the cluster to join....
+>>> Performing Cluster Check (using node 192.168.4.51:6051)
+M: 0ec903c572270a90f3b140fba31aac15aaf5336b 192.168.4.51:6051
+   slots:0-5460 (5461 slots) master
+   1 additional replica(s)
+M: 388c33e7128fc961b381ad3b3c27c3c217912666 192.168.4.54:6054
+   slots:9678 (1 slots) master
+   0 additional replica(s)
+S: 651f7d99965316c1b8a27a2e9b034a5b14c2be55 192.168.4.55:6055
+   slots: (0 slots) slave
+   replicates 0ec903c572270a90f3b140fba31aac15aaf5336b
+S: a3af3096ee214c92a178eadf6e9299584899e62f 192.168.4.56:6056
+   slots: (0 slots) slave
+   replicates 5278df7384edc9774b1a36b0b9d60a813a7424a9
+M: 6cdb4c64c48c0ee2ca35bf139660f31ca92821dc 192.168.4.53:6053
+   slots:10923-16383 (5461 slots) master
+   0 additional replica(s)
+M: 5278df7384edc9774b1a36b0b9d60a813a7424a9 192.168.4.52:6052
+   slots:5461-9677,9679-10922 (5461 slots) master
+   1 additional replica(s)
+[OK] All nodes agree about slots configuration.
+>>> Check for open slots...
+>>> Check slots coverage...
+[OK] All 16384 slots covered.
+[root@host51 ~]# 
+
+
+[root@db52 redis-4.0.8]# cat /var/lib/redis/6052/nodes-6052.conf   #集群配置文件
+6cdb4c64c48c0ee2ca35bf139660f31ca92821dc 192.168.4.53:6053@16053 master - 0 1526096611374
+
+3 connected 10923-16383
+0ec903c572270a90f3b140fba31aac15aaf5336b 192.168.4.51:6051@16051 master - 0 1526096612000 
+
+1 connected 0-5460
+388c33e7128fc961b381ad3b3c27c3c217912666 192.168.4.54:6054@16054 master - 0 1526096611043 
+
+4 connected 9678
+a3af3096ee214c92a178eadf6e9299584899e62f 192.168.4.56:6056@16056 slave 
+
+5278df7384edc9774b1a36b0b9d60a813a7424a9 0 1526096611745 6 connected
+651f7d99965316c1b8a27a2e9b034a5b14c2be55 192.168.4.55:6055@16055 slave 
+
+0ec903c572270a90f3b140fba31aac15aaf5336b 0 1526096613000 5 connected
+5278df7384edc9774b1a36b0b9d60a813a7424a9 192.168.4.52:6052@16052 myself,master - 0 
+
+1526096612000 2 connected 5461-9677 9679-10922
+vars currentEpoch 6 lastVoteEpoch 0
+[root@db52 redis-4.0.8]# 
+
+
+ set the above configuration? (type 'yes' to accept): yes
+/usr/local/share/gems/gems/redis-3.2.1/lib/redis/client.rb:113:in `call': ERR Slot 0 is already busy 
+
+(Redis::CommandError)
+	from /usr/local/share/gems/gems/redis-3.2.1/lib/redis.rb:2556:in `block in method_missing'
+	from /usr/local/share/gems/gems/redis-3.2.1/lib/redis.rb:37:in `block in synchronize'
+	from /usr/share/ruby/monitor.rb:211:in `mon_synchronize'
+	from /usr/local/share/gems/gems/redis-3.2.1/lib/redis.rb:37:in `synchronize'
+	from /usr/local/share/gems/gems/redis-3.2.1/lib/redis.rb:2555:in `method_missing'
+	from /usr/local/bin/redis-trib.rb:212:in `flush_node_config'
+	from /usr/local/bin/redis-trib.rb:906:in `block in flush_nodes_config'
+	from /usr/local/bin/redis-trib.rb:905:in `each'
+	from /usr/local/bin/redis-trib.rb:905:in `flush_nodes_config'
+	from /usr/local/bin/redis-trib.rb:1426:in `create_cluster_cmd'
+	from /usr/local/bin/redis-trib.rb:1830:in `<main>'
+[root@mysql51 ~]# 
+
+
+
+
+每台 redis服务 在本机登录 查看集群信息
+
+[root@host51 ~]# redis-cli  -c -h 192.168.4.51  -p 6051 
+
+-c  连接集群中的主机
+[root@host51 ~]# redis-cli  -c -h 192.168.4.51  -p 6051 
+192.168.4.51:6051> CLUSTER  info
+192.168.4.51:6051> CLUSTER nodes
+192.168.4.51:6051> quit
+
+
+192.168.4.51:6051> CLUSTER nodes
+388c33e7128fc961b381ad3b3c27c3c217912666 192.168.4.54:6054@16054 master - 0 1526108837942 
+
+4 connected 9678
+651f7d99965316c1b8a27a2e9b034a5b14c2be55 192.168.4.55:6055@16055 slave 
+
+0ec903c572270a90f3b140fba31aac15aaf5336b 0 1526108838444 5 connected
+a3af3096ee214c92a178eadf6e9299584899e62f 192.168.4.56:6056@16056 slave 
+
+5278df7384edc9774b1a36b0b9d60a813a7424a9 0 1526108838946 6 connected
+6cdb4c64c48c0ee2ca35bf139660f31ca92821dc 192.168.4.53:6053@16053 master - 0 1526108837942 
+
+3 connected 10923-16383
+0ec903c572270a90f3b140fba31aac15aaf5336b 192.168.4.51:6051@16051 myself,master - 0 
+
+1526108836000 1 connected 0-5460
+5278df7384edc9774b1a36b0b9d60a813a7424a9 192.168.4.52:6052@16052 master - 0 
+
+1526108839447 2 connected 5461-9677 9679-10922
+192.168.4.51:6051> 
+192.168.4.51:6051> 
+192.168.4.51:6051> 
+192.168.4.51:6051> CLUSTER info
+cluster_state:ok
+cluster_slots_assigned:16384
+cluster_slots_ok:16384
+cluster_slots_pfail:0
+cluster_slots_fail:0
+cluster_known_nodes:6
+cluster_size:4
+cluster_current_epoch:6
+cluster_my_epoch:1
+cluster_stats_messages_ping_sent:26580
+cluster_stats_messages_pong_sent:20656
+cluster_stats_messages_update_sent:2
+cluster_stats_messages_sent:47238
+cluster_stats_messages_ping_received:20651
+cluster_stats_messages_pong_received:26580
+cluster_stats_messages_meet_received:5
+cluster_stats_messages_received:47236
+192.168.4.51:6051> 
+
 
 
 
